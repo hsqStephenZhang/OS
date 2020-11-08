@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.15)
+project(OS)
+
+set(CMAKE_CXX_STANDARD 20)
+
+add_executable(OS exp1.cpp)
+add_executable(exp2 exp2.cpp )
+add_executable(exp3 exp3.cpp)
+add_executable(exp4 exp4.cpp)
+add_executable(test pipe.cpp)
+add_executable(waitPid waitPid.cpp)
+add_executable(mySem mySem.cpp)
+add_executable(seller seller.cpp)
+TARGET_LINK_LIBRARIES(seller -lpthread)
+TARGET_LINK_LIBRARIES(mySem -lpthread)
