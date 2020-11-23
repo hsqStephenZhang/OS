@@ -23,8 +23,8 @@ int main(int argc,char *argv[]){
         printf("打开文件:%s成功\n",argv[0]);
     }
 
-    ShareBuffer *bufferTail = (ShareBuffer *)shmat(shmtail, NULL, SHM_W);
-    if (bufferTail==(ShareBuffer*)(-1)){
+    MyShm *bufferTail = (MyShm *)shmat(shmtail, NULL, SHM_W);
+    if (bufferTail==(MyShm*)(-1)){
         printf("error\n");
     }
     while (1) {
@@ -44,7 +44,7 @@ int main(int argc,char *argv[]){
         }
         bufferTail->size = bytesRead;
         shmtail = bufferTail->nextshm;
-        bufferTail = (ShareBuffer *)shmat(shmtail, NULL, 0);
+        bufferTail = (MyShm *)shmat(shmtail, NULL, 0);
         printf("release signal\n");
         V(semid, 0);
         V(semid, 2);

@@ -24,7 +24,7 @@ int main(int argc,char *argv[]){
         printf("打开文件:%s成功\n",argv[0]);
     }
 
-    ShareBuffer *bufferhead = (ShareBuffer *)shmat(shmhead, NULL, SHM_R);
+    MyShm *bufferhead = (MyShm *)shmat(shmhead, NULL, SHM_R);
     while (1) {
         printf("int put,signal in \n");
         P(semid, 2);
@@ -39,7 +39,7 @@ int main(int argc,char *argv[]){
         }
         fwrite((void *)(bufferhead->data), bufferhead->size, 1, outFile);
         shmhead = bufferhead->nextshm;
-        bufferhead = (ShareBuffer *)shmat(shmhead, NULL, 0);
+        bufferhead = (MyShm *)shmat(shmhead, NULL, 0);
         V(semid, 1);
         V(semid, 2);
     }

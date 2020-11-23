@@ -56,10 +56,10 @@ typedef struct _ShareBuffer {
     uint32_t size;
     int  nextshm;
     char data[DATASIZE];
-} ShareBuffer;
+} MyShm;
 
 int read_pro(FILE *inFile, int shmhead, int shmtail, int semid) {
-    ShareBuffer *bufferTail = (ShareBuffer *)shmat(shmtail, NULL, 0);
+    MyShm *bufferTail = (MyShm *)shmat(shmtail, NULL, 0);
     while (1) {
         P(semid, 2);
         P(semid, 1);
@@ -75,14 +75,14 @@ int read_pro(FILE *inFile, int shmhead, int shmtail, int semid) {
         }
         bufferTail->size = bytesRead;
         shmtail = bufferTail->nextshm;
-        bufferTail = (ShareBuffer *)shmat(shmtail, NULL, 0);
+        bufferTail = (MyShm *)shmat(shmtail, NULL, 0);
         V(semid, 0);//读入文件加1
         V(semid, 2);//释放权限
     }
 }
 
 int write_pro(FILE *outFile, int shmhead, int shmtail, int semid) {
-    ShareBuffer *bufferhead = (ShareBuffer *)shmat(shmhead, NULL, 0);
+    MyShm *bufferhead = (MyShm *)shmat(shmhead, NULL, 0);
     while (1) {
         P(semid, 2);
         P(semid, 0);
@@ -96,7 +96,7 @@ int write_pro(FILE *outFile, int shmhead, int shmtail, int semid) {
         }
         fwrite((void *)(bufferhead->data), bufferhead->size, 1, outFile);
         shmhead = bufferhead->nextshm;
-        bufferhead = (ShareBuffer *)shmat(shmhead, NULL, 0);
+        bufferhead = (MyShm *)shmat(shmhead, NULL, 0);
         V(semid, 1);
         V(semid, 2);
     }
@@ -127,12 +127,12 @@ int main(int argc, char *argv[]) {
     }//获取共享内存key值
 
     int shm_head;
-    if ((shm_head = shmget(shmkey, sizeof(ShareBuffer), IPC_CREAT | 0666)) <= 0) {
+    if ((shm_head = shmget(shmkey, sizeof(MyShm), IPC_CREAT | 0666)) <= 0) {
         perror("无法创建共享缓冲区");
         exit(1);
     }//创建第一个head共享缓冲区
 
-    ShareBuffer *shareBuffer = (ShareBuffer *)shmat(shm_head, NULL, 0);
+    MyShm *shareBuffer = (MyShm *)shmat(shm_head, NULL, 0);
     if ((int64_t)(shareBuffer) == -1) {
         perror("无法获取共享缓冲区");
         exit(1);
@@ -147,13 +147,13 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
         int idShm;
-        if ((idShm = shmget(shmkey, sizeof(ShareBuffer), IPC_CREAT | 0666)) <= 0) {
+        if ((idShm = shmget(shmkey, sizeof(MyShm), IPC_CREAT | 0666)) <= 0) {
             perror("无法创建共享缓冲区");
             exit(1);
         }
         shareBuffer->nextshm = idShm;
         shareBuffer->status = STATUS_PENDING;
-        shareBuffer = (ShareBuffer *)shmat(idShm, NULL, 0);
+        shareBuffer = (MyShm *)shmat(idShm, NULL, 0);
         if ((int64_t)(shareBuffer) == -1) {
             perror("无法获取共享缓冲区");
             exit(1);

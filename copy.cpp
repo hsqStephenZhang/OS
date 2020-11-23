@@ -4,12 +4,12 @@ static int read_proc = 0, write_proc = 0;
 
 int main(int argc,char* argv[]){
     int shm_head;
-    if ((shm_head = shmget(IPC_PRIVATE, sizeof(ShareBuffer), IPC_CREAT | 0666)) <= 0) {
+    if ((shm_head = shmget(IPC_PRIVATE, sizeof(MyShm), IPC_CREAT | 0666)) <= 0) {
         perror("无法创建共享缓冲区");
         exit(1);
     }
 
-    ShareBuffer *shareBuffer = (ShareBuffer *)shmat(shm_head, NULL, SHM_W);
+    MyShm *shareBuffer = (MyShm *)shmat(shm_head, NULL, SHM_W);
     if ((int64_t)(shareBuffer) == -1) {
         perror("无法获取共享缓冲区");
         exit(1);
@@ -19,13 +19,13 @@ int main(int argc,char* argv[]){
 
     for (int i = 0; i < BUFFERNUM; ++i) {
         int idShm;
-        if ((idShm = shmget(IPC_PRIVATE, sizeof(ShareBuffer), IPC_CREAT | 0666)) <= 0) {
+        if ((idShm = shmget(IPC_PRIVATE, sizeof(MyShm), IPC_CREAT | 0666)) <= 0) {
             perror("无法创建共享缓冲区");
             exit(1);
         }
         shareBuffer->nextshm = idShm;
         shareBuffer->status = STATUS_PENDING;
-        shareBuffer = (ShareBuffer *)shmat(idShm, NULL, 0);
+        shareBuffer = (MyShm *)shmat(idShm, NULL, 0);
         if ((int64_t)(shareBuffer) == -1) {
             perror("无法获取共享缓冲区");
             exit(1);
@@ -39,7 +39,7 @@ int main(int argc,char* argv[]){
     union semun wp; // write process's size
     union semun rp;  // read process's size
     union semun mutex;  // read/write mutex signal
-    wp.val = BUFFERNUM;
+    wp.val = BUFFERNUM+1;
     rp.val = 0;
     mutex.val = 1;
     if (semctl(semid, 0, SETVAL, wp) == -1 ||
@@ -89,7 +89,7 @@ int main(int argc,char* argv[]){
 
 //    int nextshm=shm_head;
 //    for (int i = 0; i < BUFFERNUM; ++i) {
-//        shareBuffer = (ShareBuffer *)shmat(nextshm, NULL, SHM_W);
+//        shareBuffer = (MyShm *)shmat(nextshm, NULL, SHM_W);
 //        shmctl(nextshm,IPC_RMID,0);
 //        if ((int64_t)(shareBuffer) == -1) {
 //            perror("无法获取共享缓冲区");

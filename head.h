@@ -48,9 +48,9 @@ void V(int semid, int index) {
     return ;
 }
 
-typedef struct _ShareBuffer {
+typedef struct _my_share_memory{
     unsigned char status;
     uint32_t size;
     int  nextshm;
     char data[DATASIZE];
-} ShareBuffer;
+} MyShm;
